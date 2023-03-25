@@ -47,6 +47,8 @@ contract Northstar is ERC20 {
         ///@custom:member The amount allocated.
         ///@dev Equally, we can pack this as well pending a decision on token supply.
         uint256 amount;
+        ///@custom:member Address responsible for the allocation, and the address to recieve the payoff.
+        address curator;
     }
 
     ///@notice Maps an ID to a listing.
@@ -56,6 +58,7 @@ contract Northstar is ERC20 {
     ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
     mapping(bytes32 => Allocation[]) public allocations;
 
+    ///@notice Initialize the contract, and create the underlying token.
     constructor() ERC20("Northstar", "NRTH", 18) {}
 
     ///@notice List an ERC721 token for curation, and sale.
@@ -88,9 +91,26 @@ contract Northstar is ERC20 {
 
     ///@notice Allocate some NRTH tokens, and recieve a payoff dependent on the curation fee.
     function allocate(bytes32 listing, uint256 amount) external {
-        allocations[listing].push(Allocation({position: allocations[listing].length, amount: amount}));
+        SafeTransferLib.safeTransferFrom(ERC20(address(this)), msg.sender, address(this), amount);
+
+        allocations[listing].push(
+            Allocation({position: allocations[listing].length, amount: amount, curator: msg.sender})
+        );
     }
 
-    ///@notice Remove your allocation of NRTH tokens, and remove your payoff claim.
-    function deallocate() external {}
+    ///@notice Remove an allocation of NRTH tokens, and remove your payoff claim.
+    function deallocate(bytes32 listing, uint256 amount) external {
+        SafeTransferLib.safeTransferFrom(ERC20(address(this)), address(this), msg.sender, amount);
+        Allocation[] memory currentAllocations = allocations[listing];
+
+        for (uint256 i = 0; i < currentAllocations.length; ++i) {
+            if (currentAllocations[i].curator == msg.sender) {
+                if (allocations[listing][i].amount == amount) {
+                    delete allocations[listing][i];
+                }
+                allocations[listing][i].amount -= amount;
+                break;
+            }
+        }
+    }
 }
