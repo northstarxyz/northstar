@@ -90,6 +90,9 @@ contract Northstar is ERC20 {
     }
 
     ///@notice Allocate some NRTH tokens, and recieve a payoff dependent on the curation fee.
+    ///@param listing Hash of listing.
+    ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
+    ///@param amount Amount of tokens to allocate.
     function allocate(bytes32 listing, uint256 amount) external {
         SafeTransferLib.safeTransferFrom(ERC20(address(this)), msg.sender, address(this), amount);
 
@@ -98,7 +101,10 @@ contract Northstar is ERC20 {
         );
     }
 
-    ///@notice Remove an allocation of NRTH tokens, and remove your payoff claim.
+    ///@notice Remove an allocation of NRTH tokens.
+    ///@param listing Hash of listing.
+    ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
+    ///@param amount Amount of tokens to allocate.
     function deallocate(bytes32 listing, uint256 amount) external {
         SafeTransferLib.safeTransferFrom(ERC20(address(this)), address(this), msg.sender, amount);
         Allocation[] memory currentAllocations = allocations[listing];
