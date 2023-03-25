@@ -55,7 +55,7 @@ contract Northstar is ERC20 {
         ///@custom:member Price of the token.
         uint128 price;
         ///@custom:member Curation fee in basis points.
-        uint8 fee;
+        uint128 fee;
     }
 
     ///@notice Represents an alloction - a claim to a percentage of a tokens payoff.
@@ -83,14 +83,16 @@ contract Northstar is ERC20 {
     //////////////////////////////////////////////////////////////*/
 
     ///@notice Initialize the contract, and create the underlying token.
-    constructor() ERC20("Northstar", "NRTH", 18) {}
+    constructor(address controller) ERC20("Northstar", "NRTH", 18) {
+        _mint(controller, 100000);
+    }
 
     ///@notice List an ERC721 token for curation, and sale.
     ///@param tokenContract Contract of the token to list.
     ///@param tokenId Token ID of the token to list.
     ///@param price Listing price.
     ///@param fee Curation fee.
-    function list(ERC721 tokenContract, uint256 tokenId, uint128 price, uint8 fee) external payable returns (uint256) {
+    function list(ERC721 tokenContract, uint256 tokenId, uint128 price, uint128 fee) external payable returns (uint256) {
         listings[currentId] =
             Listing({tokenContract: tokenContract, tokenId: tokenId, price: price, owner: msg.sender, fee: fee});
 
