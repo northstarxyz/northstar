@@ -25,18 +25,18 @@ contract Northstar is ERC20 {
     uint256 public currentId = 1;
 
     ///@notice Represents a token listing.
-	struct Listing {
+    struct Listing {
         ///@custom:member Contract of the listed token.
-		ERC721 tokenContract;
+        ERC721 tokenContract;
         ///@custom:member ID of the listed token.
-		uint256 tokenId;
+        uint256 tokenId;
         ///@custom:member Owner of the token.
-		address owner;
+        address owner;
         ///@custom:member Price of the token.
-		uint128 price;
+        uint128 price;
         ///@custom:member Curation fee in basis points.
         uint8 fee;
-	}
+    }
 
     ///@notice Represents an alloction - a claim to a percentage of a tokens payoff.
     struct Allocation {
@@ -44,7 +44,6 @@ contract Northstar is ERC20 {
         ///@dev Note that allocations are position dependent, not time dependent.
         ///@dev We can probably pack this pending a decision on token supply.
         uint256 position;
-
         ///@custom:member The amount allocated.
         ///@dev Equally, we can pack this as well pending a decision on token supply.
         uint256 amount;
@@ -56,7 +55,7 @@ contract Northstar is ERC20 {
     ///@notice Maps a hashed `tokenContract` and `tokenId` to an allocation.
     ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
     mapping(bytes32 => Allocation[]) public allocations;
-    
+
     constructor() ERC20("Northstar", "NRTH", 18) {}
 
     ///@notice List an ERC721 token for curation, and sale.
@@ -64,23 +63,13 @@ contract Northstar is ERC20 {
     ///@param tokenId Token ID of the token to list.
     ///@param price Listing price.
     ///@param fee Curation fee.
-    function list(
-        ERC721 tokenContract,
-        uint256 tokenId,
-        uint128 price,
-        uint8 fee
-    ) external payable returns (uint256) {
-		listings[currentId] = Listing({
-			tokenContract: tokenContract,
-			tokenId: tokenId,
-			price: price,
-			owner: msg.sender,
-            fee: fee
-		});
+    function list(ERC721 tokenContract, uint256 tokenId, uint128 price, uint8 fee) external payable returns (uint256) {
+        listings[currentId] =
+            Listing({tokenContract: tokenContract, tokenId: tokenId, price: price, owner: msg.sender, fee: fee});
 
-		tokenContract.transferFrom(msg.sender, address(this), tokenId);
+        tokenContract.transferFrom(msg.sender, address(this), tokenId);
 
-		return currentId++;        
+        return currentId++;
     }
 
     ///@notice Purchase a listed ERC721 token and distribute curation fee.
@@ -88,24 +77,18 @@ contract Northstar is ERC20 {
     function buy(uint256 listingId) external payable {
         Listing memory listing = listings[listingId];
 
-		if (listing.owner == address(0)) revert Northstar__ListingNotFound();
-		if (listing.price != msg.value) revert Northstar__WrongValueSent();
+        if (listing.owner == address(0)) revert Northstar__ListingNotFound();
+        if (listing.price != msg.value) revert Northstar__WrongValueSent();
 
-		delete listings[listingId];
+        delete listings[listingId];
 
-		SafeTransferLib.safeTransferETH(listing.owner, listing.price);
-		listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
+        SafeTransferLib.safeTransferETH(listing.owner, listing.price);
+        listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
     }
 
     ///@notice Allocate some NRTH tokens, and recieve a payoff dependent on the curation fee.
-    function allocate(
-        bytes32 allocationHash,
-        uint256 amount
-    ) external {
-        allocations[allocationHash].push(Allocation({
-            position: allocations[allocationHash].length,
-            amount: amount
-        }));
+    function allocate(bytes32 listing, uint256 amount) external {
+        allocations[listing].push(Allocation({position: allocations[listing].length, amount: amount}));
     }
 
     ///@notice Remove your allocation of NRTH tokens, and remove your payoff claim.
