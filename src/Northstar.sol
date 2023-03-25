@@ -21,6 +21,26 @@ contract Northstar is ERC20 {
     ///@notice Emitted when the listing is not found.
     error Northstar__ListingNotFound();
 
+    /*//////////////////////////////////////////////////////////////
+                                  EVENT
+    //////////////////////////////////////////////////////////////*/
+
+    ///@notice Emitted when a token is listed.
+    event Northstar__Listing(Listing indexed listing);
+
+    ///@notice Emitted when a listing is bought.
+    event Northstar__Buy(Listing indexed listing);
+
+    ///@notice Emitted when tokens are allocated to a listing.
+    event Northstar__Allocation(bytes32 indexed listing, uint256 indexed amount);
+
+    ///@notice Emitted when tokens are deallocated from a listing.
+    event Northstar__Deallocation(bytes32 indexed listing, uint256 indexed amount);
+
+    /*//////////////////////////////////////////////////////////////
+                                  STATE
+    //////////////////////////////////////////////////////////////*/
+
     ///@notice Counter for the next sales index.
     uint256 public currentId = 1;
 
@@ -58,6 +78,10 @@ contract Northstar is ERC20 {
     ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
     mapping(bytes32 => Allocation[]) public allocations;
 
+    /*//////////////////////////////////////////////////////////////
+                                INTERFACE
+    //////////////////////////////////////////////////////////////*/
+
     ///@notice Initialize the contract, and create the underlying token.
     constructor() ERC20("Northstar", "NRTH", 18) {}
 
@@ -71,6 +95,8 @@ contract Northstar is ERC20 {
             Listing({tokenContract: tokenContract, tokenId: tokenId, price: price, owner: msg.sender, fee: fee});
 
         tokenContract.transferFrom(msg.sender, address(this), tokenId);
+
+        emit Northstar__Listing(listings[currentId]);
 
         return currentId++;
     }
@@ -87,6 +113,8 @@ contract Northstar is ERC20 {
 
         SafeTransferLib.safeTransferETH(listing.owner, listing.price);
         listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
+
+        emit Northstar__Buy(listing);
     }
 
     ///@notice Allocate some NRTH tokens, and recieve a payoff dependent on the curation fee.
@@ -99,6 +127,8 @@ contract Northstar is ERC20 {
         allocations[listing].push(
             Allocation({position: allocations[listing].length, amount: amount, curator: msg.sender})
         );
+
+        emit Northstar__Allocation(listing, amount);
     }
 
     ///@notice Remove an allocation of NRTH tokens.
@@ -118,5 +148,7 @@ contract Northstar is ERC20 {
                 break;
             }
         }
+
+        emit Northstar__Deallocation(listing, amount);
     }
 }
