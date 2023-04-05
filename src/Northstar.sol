@@ -21,6 +21,9 @@ contract Northstar is ERC20 {
     ///@notice Emitted when the listing is not found.
     error Northstar__ListingNotFound();
 
+    ///@notice Emitted when the listing has not sold as is therefore unclaimable.
+    error Northstar__NotClaimable();
+
     /*//////////////////////////////////////////////////////////////
                                   EVENT
     //////////////////////////////////////////////////////////////*/
@@ -116,7 +119,12 @@ contract Northstar is ERC20 {
 
         delete listings[listingId];
 
-        SafeTransferLib.safeTransferETH(listing.owner, listing.price);
+        // Convert basis points to percentage and calculate proportion of listing price.
+        uint256 curationFee = (listing.fee / 10000) * listing.price;
+ 
+        // Transfer payment to the listing creator, and leave curation fee in contract for later claiming.
+        SafeTransferLib.safeTransferETH(listing.owner, listing.price - curationFee);
+
         listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
 
         claimable[listingId] = true;
@@ -157,5 +165,18 @@ contract Northstar is ERC20 {
         }
 
         emit Northstar__Deallocation(listing, amount);
+    }
+
+    ///@notice Claim tokens from a specific listing.
+    function claim(uint256 listingId) external {
+        if (!claimable[listingId]) revert Northstar__NotClaimable();
+    }
+
+    ///@notice Claim tokens from all listings the user is eligible to claim from.
+    function claimAll() external {}
+
+    function calculateAllocation(uint256 listingId, Allocation allocation) internal view returns (uint256) {
+        // return listing.price * (log(position + (amount / 100)) / sum(log(position_n + (amount_n / 100))))
+        return 1;
     }
 }
