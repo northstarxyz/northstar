@@ -78,6 +78,9 @@ contract Northstar is ERC20 {
     ///@dev keccak256(abi.encodePacked(tokenContract, tokenId))
     mapping(bytes32 => Allocation[]) public allocations;
 
+    ///@notice Determines whether a listing is claimable: whether the curation fee can be distributed.
+    mapping(uint256 => bool) public claimable;
+
     /*//////////////////////////////////////////////////////////////
                                 INTERFACE
     //////////////////////////////////////////////////////////////*/
@@ -115,6 +118,8 @@ contract Northstar is ERC20 {
 
         SafeTransferLib.safeTransferETH(listing.owner, listing.price);
         listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
+
+        claimable[listingId] = true;
 
         emit Northstar__Buy(listing);
     }
