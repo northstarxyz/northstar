@@ -10,6 +10,10 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 contract Engine is ERC20 {
     using SafeTransferLib for ERC20;
 
+    /*//////////////////////////////////////////////////////////////
+                                  STATE
+    //////////////////////////////////////////////////////////////*/
+
     uint256 public currentId;
 
     struct Allocation {
@@ -30,6 +34,10 @@ contract Engine is ERC20 {
     mapping(uint256 => Listing) public listings;
     mapping(address => uint256) public balances;
     mapping(uint256 => mapping(uint256 => Allocation)) public allocations;
+
+    /*//////////////////////////////////////////////////////////////
+                                INTERFACE
+    //////////////////////////////////////////////////////////////*/
     
     constructor(address controller) ERC20("Northstar", "NRTH", 18) {
         _mint(controller, 100000);
@@ -80,6 +88,10 @@ contract Engine is ERC20 {
         // this is inefficient as we are accessing the same mapping twice when we can do it once.
         _withdraw(balances[msg.sender], msg.sender);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                INTERNAL
+    //////////////////////////////////////////////////////////////*/
 
     function _updateBalances(uint256 listingId) internal {
         Listing memory listing = listings[listingId];
