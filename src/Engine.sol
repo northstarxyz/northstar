@@ -73,7 +73,7 @@ contract Engine is ERC20 {
     /*//////////////////////////////////////////////////////////////
                                 INTERFACE
     //////////////////////////////////////////////////////////////*/
-    
+
     ///@notice Initialize the contract, and the signal token.
     ///@param controller Address to mint signal tokens to.
     constructor(address controller) ERC20("Northstar", "NRTH", 18) {
@@ -86,9 +86,20 @@ contract Engine is ERC20 {
     ///@param tokenId Token ID of the ERC721 token.
     ///@param price Price of the listing in ETH.
     ///@param fee Curation fee in basis points to initialize the listing with.
-    function list(ERC721 tokenContract, uint256 tokenId, uint128 price, uint128 fee) external payable returns (uint256) {
-        listings[currentId] =
-            Listing({tokenContract: tokenContract, tokenId: tokenId, price: price, owner: msg.sender, fee: fee, allocationId: 0, allocationSum: 0});
+    function list(ERC721 tokenContract, uint256 tokenId, uint128 price, uint128 fee)
+        external
+        payable
+        returns (uint256)
+    {
+        listings[currentId] = Listing({
+            tokenContract: tokenContract,
+            tokenId: tokenId,
+            price: price,
+            owner: msg.sender,
+            fee: fee,
+            allocationId: 0,
+            allocationSum: 0
+        });
 
         tokenContract.transferFrom(msg.sender, address(this), tokenId);
 
@@ -108,7 +119,7 @@ contract Engine is ERC20 {
         delete listings[listingId];
 
         uint256 curationFee = (listing.fee / 10000) * listing.price;
- 
+
         SafeTransferLib.safeTransferETH(listing.owner, listing.price - curationFee);
 
         _updateBalances(listingId);
@@ -116,7 +127,7 @@ contract Engine is ERC20 {
         emit Northstar__Buy(currentId);
 
         listing.tokenContract.transferFrom(address(this), msg.sender, listing.tokenId);
-    }    
+    }
 
     ///@notice Allocate to a listing.
     ///@param listingId Listing to allocate to.
@@ -145,7 +156,7 @@ contract Engine is ERC20 {
     ///@notice Claim all payoffs.
     function claimAll() external {
         uint256 totalBalance = balances[msg.sender];
-    
+
         // This is inefficient as we are accessing the same mapping twice when we can do it once.
         _withdraw(totalBalance, msg.sender);
 
@@ -198,6 +209,6 @@ contract Engine is ERC20 {
         if (amount > currentBalance) revert Northstar__InvalidWithdrawalAmount();
 
         balances[msg.sender] -= amount;
-        SafeTransferLib.safeTransferFrom(ERC20(address(this)), address(this), to, amount);        
+        SafeTransferLib.safeTransferFrom(ERC20(address(this)), address(this), to, amount);
     }
 }
