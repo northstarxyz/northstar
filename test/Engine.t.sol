@@ -81,16 +81,17 @@ contract EngineTest is Test {
     function testAllocate(uint256 _amount, uint128 _price, uint128 _fee) public {
         vm.assume(_amount <= northstar.balanceOf(address(this)));
 
-        (,,,,, uint256 allocationId,) = northstar.listings(listingId);
+        (,,,,, uint256 allocationId, uint256 allocationSum) = northstar.listings(listingId);
 
         listingId = northstar.list(listing, id, _price, _fee);
         northstar.allocate(listingId, _amount);
 
-        (,,,,, uint256 newAllocationId,) = northstar.listings(listingId);
+        (,,,,, uint256 newAllocationId, uint256 newAllocationSum) = northstar.listings(listingId);
         (address curator, uint256 amount) = northstar.allocations(listingId, newAllocationId);
 
         assertEq(newAllocationId, allocationId += 1);
         assertEq(curator, address(this));
+        assertEq(allocationSum += (newAllocationId + (_amount / 1000)), newAllocationSum);
         assertEq(amount, _amount);
     }
 
