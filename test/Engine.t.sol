@@ -39,10 +39,10 @@ contract NorthstarTest is Test {
         id = listing.mint();
     }
 
-    function testListingCreation() public {
+    function testListingCreation(uint128 _price, uint128 _fee) public {
         assertEq(listing.ownerOf(id), address(this));
 
-        listingId = northstar.list(listing, id, 1 ether, 500);
+        listingId = northstar.list(listing, id, _price, _fee);
 
         (
             ERC721 tokenContract,
@@ -57,24 +57,24 @@ contract NorthstarTest is Test {
         assertEq(address(tokenContract), address(listing));
         assertEq(tokenId, id);
         assertEq(owner, address(this));
-        assertEq(price, 1 ether);
-        assertEq(fee, 500);
+        assertEq(price, _price);
+        assertEq(fee, _fee);
         assertEq(allocationId, 0);
         assertEq(allocationSum, 0);
     }
 
-    function testNonOwnerCannotList() public {
+    function testNonOwnerCannotList(uint128 _price, uint128 _fee) public {
         hevm.prank(address(0x00000000));
         hevm.expectRevert("WRONG_FROM");
 
-        listingId = northstar.list(listing, id, 1 ether, 500);
+        listingId = northstar.list(listing, id, _price, _fee);
     }
 
-    function testCannotListWithoutApproval() public {
+    function testCannotListWithoutApproval(uint128 _price, uint128 _fee) public {
         listing.setApprovalForAll(address(northstar), false);
 
         hevm.expectRevert("NOT_AUTHORIZED");
 
-        listingId = northstar.list(listing, id, 1 ether, 500);
+        listingId = northstar.list(listing, id, _price, _fee);
     }
 }
