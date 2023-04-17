@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
+import {Vm} from "forge-std/Vm.sol";
 import {Test} from "forge-std/Test.sol";
 import {Engine} from "../src/Engine.sol";
-import {Vm} from "forge-std/Vm.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {ERC721} from "solmate/tokens/ERC721.sol";
 
@@ -22,7 +22,7 @@ contract TestNFT is ERC721("Test NFT", "TEST") {
     }
 }
 
-contract NorthstarTest is Test {
+contract EngineTest is Test {
     uint256 public id;
     uint256 public listingId;
 
@@ -76,5 +76,13 @@ contract NorthstarTest is Test {
         hevm.expectRevert("NOT_AUTHORIZED");
 
         listingId = northstar.list(listing, id, _price, _fee);
+    }
+
+    function testAllocate(uint256 _amount, uint128 _price, uint128 _fee) public {
+        vm.assume(_amount <= northstar.balanceOf(address(this)));
+
+        listingId = northstar.list(listing, id, _price, _fee);
+
+        northstar.allocate(listingId, _amount);
     }
 }
