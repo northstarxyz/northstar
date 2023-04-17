@@ -139,6 +139,7 @@ contract Engine is ERC20 {
 
         uint256 nextPosition = listing.allocationId += 1;
 
+        listings[listingId].allocationId = nextPosition;
         listings[listingId].allocationSum += (nextPosition + (amount / 1000));
         allocations[listingId][nextPosition] = Allocation({curator: msg.sender, amount: amount});
 

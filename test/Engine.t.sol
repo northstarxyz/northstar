@@ -80,8 +80,24 @@ contract EngineTest is Test {
 
     function testAllocate(uint256 _amount, uint128 _price, uint128 _fee) public {
         vm.assume(_amount <= northstar.balanceOf(address(this)));
+        
+        (,,,,, uint256 allocationId,) = northstar.listings(listingId);
 
         listingId = northstar.list(listing, id, _price, _fee);
+
+        northstar.allocate(listingId, _amount);
+
+        (,,,,, uint256 newAllocationId,) = northstar.listings(listingId);
+
+        assertEq(newAllocationId, allocationId += 1);
+    }
+
+    function testCannotAllocateOverBalance(uint256 _amount, uint128 _price, uint128 _fee) public {
+        vm.assume(_amount > northstar.balanceOf(address(this)));
+
+        listingId = northstar.list(listing, id, _price, _fee);
+
+        hevm.expectRevert("TRANSFER_FROM_FAILED");
 
         northstar.allocate(listingId, _amount);
     }
