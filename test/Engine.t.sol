@@ -78,11 +78,6 @@ contract EngineTest is Test {
         listingId = northstar.list(listing, id, _price, _fee);
     }
 
-    struct Allocation {
-        address curator;
-        uint256 amount;
-    }
-
     function testAllocate(uint256 _amount, uint128 _price, uint128 _fee) public {
         vm.assume(_amount <= northstar.balanceOf(address(this)));
 
