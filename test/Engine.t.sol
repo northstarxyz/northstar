@@ -2,8 +2,12 @@
 pragma solidity ^0.8.19;
 
 import {Vm} from "forge-std/Vm.sol";
+import {console} from "forge-std/console.sol";
+
 import {Test} from "forge-std/Test.sol";
 import {Engine} from "../src/Engine.sol";
+
+
 import {ERC20} from "solmate/tokens/ERC20.sol";
 import {ERC721} from "solmate/tokens/ERC721.sol";
 
