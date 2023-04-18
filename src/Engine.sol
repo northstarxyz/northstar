@@ -164,21 +164,6 @@ contract Engine is ERC20 {
         emit Northstar__Claim(totalBalance, msg.sender);
     }
 
-    ///@notice Get the payoff of an allocation.
-    ///@param position Position of the allocation.
-    ///@param amount Amount of signal token allocated.
-    ///@param sum Sum of all weighted allocations.
-    ///@dev Position 1 is the first allocator, position n is the nth.
-    ///@dev The sum should be equivalent to: sum(position + (amount / 1000))
-    function getPayoff(uint256 position, uint256 amount, uint256 sum) external pure returns (uint256) {
-        int256 numerator = wadLn(int256((position * 1e18) + (amount / 1000)));
-        int256 denominator = wadLn(int256(sum) * 1e18);
-
-        uint256 payoff = uint256(numerator / denominator);
-
-        return payoff;
-    }
-
     /*//////////////////////////////////////////////////////////////
                                 INTERNAL
     //////////////////////////////////////////////////////////////*/
@@ -195,10 +180,25 @@ contract Engine is ERC20 {
 
             uint256 listingFee = (listing.fee / 10000) * listing.price;
 
-            uint256 curationFee = listingFee * getPayoff(position, allocation.amount, listing.allocationSum);
+            uint256 curationFee = listingFee * _getPayoff(position, allocation.amount, listing.allocationSum);
 
             balances[allocation.curator] += curationFee;
         }
+    }
+
+    ///@notice Get the payoff of an allocation.
+    ///@param position Position of the allocation.
+    ///@param amount Amount of signal token allocated.
+    ///@param sum Sum of all weighted allocations.
+    ///@dev Position 1 is the first allocator, position n is the nth.
+    ///@dev The sum should be equivalent to: sum(position + (amount / 1000))
+    function _getPayoff(uint256 position, uint256 amount, uint256 sum) internal pure returns (uint256) {
+        int256 numerator = wadLn(int256((position * 1e18) + (amount / 1000)));
+        int256 denominator = wadLn(int256(sum) * 1e18);
+
+        uint256 payoff = uint256(numerator / denominator);
+
+        return payoff;
     }
 
     ///@notice Withdraw a specified amount from a specific balance and transfer it to the withdrawee(?).

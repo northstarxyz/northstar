@@ -88,6 +88,7 @@ contract EngineTest is Test {
         (,,,,, uint256 allocationId, uint256 allocationSum) = northstar.listings(listingId);
 
         listingId = northstar.list(listing, id, _price, _fee);
+
         northstar.allocate(listingId, _amount);
 
         (,,,,, uint256 newAllocationId, uint256 newAllocationSum) = northstar.listings(listingId);
